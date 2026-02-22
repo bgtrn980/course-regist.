@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Registration Practice - Final Fixed</title>
+    <style>
+        /* 1. Base Variables (Light Mode Default) */
+        :root {
+            --bg-color: #F5F5F7;
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --card-border: rgba(0,0,0,0.04);
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --accent-blue: #0071E3;
+            --accent-red: #FF3B30;
+            --accent-orange: #FF9500;
+            --input-bg: rgba(0, 0, 0, 0.05);
+	    --status-bg: rgba(242, 242, 247, 0.5);
+            --shadow-soft: 0 20px 40px rgba(0, 0, 0, 0.05);
+            --modal-bg: rgba(255, 255, 255, 0.95);
+            --radius-lg: 24px;
+        }
+
+        /* Dark Mode Overrides */
+        [data-theme="dark"] {
+            --bg-color: #000000;
+            --card-bg: rgba(28, 28, 30, 0.8);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #F5F5F7;
+            --text-secondary: #86868B;
+            --accent-blue: #0A84FF;
+            --accent-red: #FF453A;
+            --accent-orange: #FF9F0A;
+            --input-bg: rgba(255, 255, 255, 0.1);
+            --status-bg: rgba(255, 255, 255, 0.1);
+            --shadow-soft: 0 20px 40px rgba(0, 0, 0, 0.3);
+            --modal-bg: rgba(44, 44, 46, 0.95);
+        }
+
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, Helvetica, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 460px;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 16px; 
+        }
+
+        .glass-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            border: 1px solid var(--card-border);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- 1. Clock Section --- */
+        .clock-section {
+            padding: 55px 0 40px; 
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative; 
+        }
+
+        /* Settings Button (Gear Icon) */
+        .btn-settings {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            z-index: 50; 
+        }
+        .btn-settings:hover {
+            background: var(--input-bg);
+            color: var(--text-primary);
+            transform: rotate(30deg);
+        }
+        .btn-settings svg { width: 22px; height: 22px; fill: currentColor; }
+
+        .clock-layer {
+            width: 100%;
+            transition: filter 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .clock-layer.blurred { filter: blur(12px); pointer-events: none; }
+
+        .date-label {
+            font-size: 1.02rem; 
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px; 
+        }
+
+        .time-display {
+            font-size: 4.8rem; 
+            font-weight: 700;
+            letter-spacing: -0.03em; 
+            color: var(--text-primary);
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        .time-display.urgent { color: var(--accent-red); }
+
+        .colon {
+            font-size: 0.9em; 
+            margin: 0 4px; 
+            position: relative;
+            top: -0.05em; 
+            font-weight: 600; 
+            opacity: 0.9;
+        }
+
+        .ms-display {
+            font-size: 1.8rem; 
+            font-weight: 500;
+            opacity: 0.4;
+            margin-left: 8px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .action-area {
+            margin-top: 20px; 
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-main {
+            width: auto; 
+            padding: 14px 60px;
+            min-width: 200px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .btn-main:hover { 
+            background: var(--accent-blue);
+            filter: brightness(1.1);
+            transform: scale(1.03); 
+            box-shadow: 0 8px 20px rgba(0, 113, 227, 0.4); 
+        }
+        .btn-main:active { transform: scale(0.96); }
+
+        /* Overlay Layer (Retry) */
+        .overlay-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        [data-theme="dark"] .overlay-layer { background: rgba(0, 0, 0, 0.3); }
+        .overlay-layer.active { opacity: 1; pointer-events: auto; }
+
+        .btn-retry {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            padding: 12px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-retry:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-retry:active { transform: scale(0.96); }
+
+
+        /* --- 2. Log Section --- */
+        .log-section {
+            display: flex;
+            flex-direction: column;
+            height: 280px;
+        }
+
+        .status-bar {
+            padding: 12px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            background: var(--status-bg);
+        }
+
+        .combo-info { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
+        .combo-count { color: var(--text-primary); font-weight: 800; }
+        .combo-count.yellow { color: var(--accent-orange); }
+        .combo-count.red { color: var(--accent-red); }
+
+        .btn-clear {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            transition: color 0.2s;
+        }
+        .btn-clear:hover { color: var(--text-primary); text-decoration: underline; }
+
+        .log-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+            scrollbar-width: thin;
+        }
+        .log-container::-webkit-scrollbar { width: 3px; }
+        .log-container::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 4px; }
+
+        .log-item {
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--card-border);
+            animation: fadeIn 0.2s ease-out;
+            background: transparent;
+        }
+        .log-item:hover { background: var(--input-bg); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .log-left { display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-weight: 500; }
+        .log-time { font-family: "SF Mono", "Menlo", monospace; color: var(--text-primary); font-weight: 600; letter-spacing: -0.02em; }
+
+        .badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+        .badge.combo { background: rgba(255, 149, 0, 0.15); color: var(--accent-orange); }
+        .badge.perfect { background: rgba(255, 59, 48, 0.15); color: var(--accent-red); }
+
+        /* --- 3. Settings Modal --- */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-backdrop.active { display: flex; opacity: 1; }
+
+        .modal-content {
+            background: var(--modal-bg);
+            width: 300px;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: var(--text-primary);
+        }
+        .modal-backdrop.active .modal-content { transform: scale(1); }
+
+        .modal-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .close-btn {
+            background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .setting-label { font-size: 0.95rem; font-weight: 600; }
+
+        /* Time Inputs */
+        .time-inputs { display: flex; align-items: center; gap: 5px; }
+        .time-input {
+            width: 50px;
+            padding: 8px;
+            border: none;
+            border-radius: 10px;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-size: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative; display: inline-block; width: 50px; height: 28px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 20px; width: 20px;
+            left: 4px; bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent-blue); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .modal-footer {
+            margin-top: 10px;
+        }
+        .btn-full {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            background: var(--accent-blue);
+            color: white;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Canvas */
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; }
+
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="app-container">
+        <div class="glass-panel clock-section">
+            
+            <button id="settingsBtn" class="btn-settings" title="설정">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                </svg>
+            </button>
+
+            <div id="clockLayer" class="clock-layer">
+                <div class="date-label" id="dateDisplay">Loading...</div>
+                
+                <div class="time-display" id="timeContainer">
+                    <div id="time-text" style="display: flex; align-items: baseline;">
+                        10:59:49 
+                    </div>
+                    <span id="ms-text" class="ms-display">000</span>
+                </div>
+
+                <div class="action-area">
+                    <button class="btn-main" id="submitBtn">수강신청</button>
+                </div>
+            </div>
+            
+            <div id="overlayLayer" class="overlay-layer">
+                <button class="btn-retry" id="retryBtn">
+                    <span>↻</span> 다시 시도하기
+                </button>
+            </div>
+        </div>
+
+        <div class="glass-panel log-section">
+            <div class="status-bar">
+                <div class="combo-info">
+                    Combo <span id="comboCountDisplay" class="combo-count">0</span>
+                </div>
+                <button id="clearLogBtn" class="btn-clear">기록 초기화</button>
+            </div>
+
+            <div class="log-container" id="logContainer">
+                </div>
+        </div>
+    </div>
+
+    <div id="modalBackdrop" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Settings</span>
+                <button id="closeModalBtn" class="close-btn">&times;</button>
+            </div>
+            
+            <div class="setting-row">
+                <span class="setting-label">목표 시간</span>
+                <div class="time-inputs">
+                    <input type="number" id="inputHour" class="time-input" value="11" min="0" max="23">
+                    <span style="font-weight:bold">:</span>
+                    <input type="number" id="inputMin" class="time-input" value="00" min="0" max="59">
+                </div>
+            </div>
+
+            <div class="setting-row">
+                <span class="setting-label">다크 모드</span>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="modal-footer">
+                <button id="saveSettingsBtn" class="btn-full">저장</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /** Configuration **/
+        let CONFIG = {
+            START_HOUR: 10,
+            START_MIN: 59,
+            START_SEC: 49,
+            URGENT_SEC: 50,
+            TARGET_HOUR: 11,
+            TARGET_MIN: 0
+        };
+
+        let state = {
+            startTime: null,
+            virtualTime: null,
+            rafId: null,
+            isRunning: false,
+            combo: 0,
+            clicks: 0,
+            lastComboKey: null
+        };
+
+        /** DOM Elements **/
+        const el = {
+            date: document.getElementById('dateDisplay'),
+            timeText: document.getElementById('time-text'),
+            ms: document.getElementById('ms-text'),
+            timeContainer: document.getElementById('timeContainer'),
+            clockLayer: document.getElementById('clockLayer'),
+            overlayLayer: document.getElementById('overlayLayer'),
+            submitBtn: document.getElementById('submitBtn'),
+            retryBtn: document.getElementById('retryBtn'),
+            logList: document.getElementById('logContainer'),
+            clearBtn: document.getElementById('clearLogBtn'),
+            comboDisplay: document.getElementById('comboCountDisplay'),
+            canvas: document.getElementById('confetti-canvas'),
+            // Settings Elements
+            settingsBtn: document.getElementById('settingsBtn'),
+            modalBackdrop: document.getElementById('modalBackdrop'),
+            closeModalBtn: document.getElementById('closeModalBtn'),
+            saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+            inputHour: document.getElementById('inputHour'),
+            inputMin: document.getElementById('inputMin'),
+            darkModeToggle: document.getElementById('darkModeToggle')
+        };
+        const ctx = el.canvas.getContext('2d');
+
+        /** Time Logic **/
+        function pad(n) { return n.toString().padStart(2, '0'); }
+        function padMs(n) { return n.toString().padStart(3, '0'); }
+
+        function calculateStartTimes(targetH, targetM) {
+            const targetDate = new Date();
+            targetDate.setHours(targetH, targetM, 0, 0);
+            const startDate = new Date(targetDate.getTime() - 11000); // 11 seconds before
+            return {
+                startHour: startDate.getHours(),
+                startMin: startDate.getMinutes(),
+                startSec: startDate.getSeconds()
+            };
+        }
+
+        function updateConfig(h, m) {
+            CONFIG.TARGET_HOUR = parseInt(h);
+            CONFIG.TARGET_MIN = parseInt(m);
+            const startTimes = calculateStartTimes(CONFIG.TARGET_HOUR, CONFIG.TARGET_MIN);
+            CONFIG.START_HOUR = startTimes.startHour;
+            CONFIG.START_MIN = startTimes.startMin;
+            CONFIG.START_SEC = startTimes.startSec;
+            resetSimulationDisplay();
+        }
+
+        function resetSimulationDisplay() {
+            if (state.isRunning) {
+                cancelAnimationFrame(state.rafId);
+                state.isRunning = false;
+            }
+            const startH = pad(CONFIG.START_HOUR);
+            const startM = pad(CONFIG.START_MIN);
+            const startS = pad(CONFIG.START_SEC);
+            
+            const hmsHTML = `
+                <span>${startH}</span><span class="colon">:</span><span>${startM}</span><span class="colon">:</span><span>${startS}</span>
+            `;
+            el.timeText.innerHTML = hmsHTML;
+            el.ms.innerText = "000";
+            
+            el.timeContainer.classList.remove('urgent');
+            el.clockLayer.classList.remove('blurred');
+            el.overlayLayer.classList.remove('active');
+        }
+
+        function updateDate() {
+            const now = new Date();
+            el.date.innerText = now.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+        }
+
+        function formatTime(d) {
+            const h = pad(d.getHours());
+            const m = pad(d.getMinutes());
+            const s = pad(d.getSeconds());
+            const ms = padMs(d.getMilliseconds());
+            const hmsHTML = `
+                <span>${h}</span><span class="colon">:</span><span>${m}</span><span class="colon">:</span><span>${s}</span>
+            `;
+            return { hmsHTML, ms, full: `${h}:${m}:${s}.${ms}` };
+        }
+
+        function loop() {
+            const now = Date.now();
+            const elapsed = now - state.startTime;
+            const startPoint = new Date();
+            startPoint.setHours(CONFIG.START_HOUR, CONFIG.START_MIN, CONFIG.START_SEC, 0);
+            const endPoint = new Date();
+            endPoint.setHours(CONFIG.TARGET_HOUR, CONFIG.TARGET_MIN, 1, 0);
+
+            state.virtualTime = new Date(startPoint.getTime() + elapsed);
+
+            if (state.virtualTime >= endPoint) {
+                finish();
+                return;
+            }
+
+            const t = formatTime(state.virtualTime);
+            el.timeText.innerHTML = t.hmsHTML; 
+            el.ms.innerText = t.ms;
+
+            if (state.virtualTime.getSeconds() >= CONFIG.URGENT_SEC) {
+                el.timeContainer.classList.add('urgent');
+            } else {
+                el.timeContainer.classList.remove('urgent');
+            }
+
+            state.rafId = requestAnimationFrame(loop);
+        }
+
+        function start() {
+            state.isRunning = true;
+            state.startTime = Date.now();
+            updateDate();
+            el.clockLayer.classList.remove('blurred');
+            el.overlayLayer.classList.remove('active');
+            loop();
+        }
+
+        function finish() {
+            cancelAnimationFrame(state.rafId);
+            state.isRunning = false;
+            const endPoint = new Date();
+            endPoint.setHours(CONFIG.TARGET_HOUR, CONFIG.TARGET_MIN, 0, 0);
+            const t = formatTime(endPoint);
+            el.timeText.innerHTML = t.hmsHTML;
+            el.ms.innerText = "000";
+            el.timeContainer.classList.remove('urgent');
+            el.clockLayer.classList.add('blurred'); 
+            el.overlayLayer.classList.add('active');
+        }
+
+        /** Combo & Logs **/
+        function updateComboVisuals() {
+            el.comboDisplay.innerText = state.combo;
+            el.comboDisplay.className = 'combo-count';
+            if (state.combo >= 3 && state.combo < 5) el.comboDisplay.classList.add('yellow');
+            if (state.combo >= 5) el.comboDisplay.classList.add('red');
+        }
+
+        function processCombo() {
+            const s = state.virtualTime.getSeconds();
+            const ms = Math.floor(state.virtualTime.getMilliseconds() / 100); 
+            const key = `${s}_${ms}`;
+            if (state.lastComboKey === key) { state.combo++; } 
+            else { state.combo = 1; state.lastComboKey = key; }
+            
+            updateComboVisuals();
+            if (state.combo >= 5) launchGoogleStyleFireworks();
+            return state.combo;
+        }
+
+        function addLog(count, timeStr, combo) {
+            const item = document.createElement('div');
+            item.className = 'log-item';
+            let badgeHtml = '';
+            if (combo >= 3) {
+                const type = combo >= 5 ? 'perfect' : 'combo';
+                const label = combo >= 5 ? 'PERFECT' : 'COMBO';
+                badgeHtml = `<span class="badge ${type}">${label} ${combo}</span>`;
+            }
+            item.innerHTML = `
+                <div class="log-left"><span>#${count}</span>${badgeHtml}</div>
+                <div class="log-time">${timeStr}</div>
+            `;
+            el.logList.insertBefore(item, el.logList.firstChild);
+        }
+
+        /** Events & Settings Logic **/
+        
+        // Modal Control
+        el.settingsBtn.addEventListener('click', () => {
+            el.modalBackdrop.classList.add('active');
+        });
+
+        const closeModal = () => {
+            el.modalBackdrop.classList.remove('active');
+            el.inputHour.value = CONFIG.TARGET_HOUR;
+            el.inputMin.value = pad(CONFIG.TARGET_MIN);
+        };
+        
+        el.closeModalBtn.addEventListener('click', closeModal);
+        el.modalBackdrop.addEventListener('click', (e) => {
+            if(e.target === el.modalBackdrop) closeModal();
+        });
+
+        // Save Settings & Restart [수정된 부분]
+        el.saveSettingsBtn.addEventListener('click', () => {
+            let h = parseInt(el.inputHour.value);
+            let m = parseInt(el.inputMin.value);
+            if (isNaN(h) || h < 0) h = 0; if (h > 23) h = 23;
+            if (isNaN(m) || m < 0) m = 0; if (m > 59) m = 59;
+            
+            el.inputHour.value = h;
+            el.inputMin.value = pad(m);
+            
+            updateConfig(h, m);
+            el.modalBackdrop.classList.remove('active');
+            
+            // 핵심 수정: 설정을 저장하면 바로 시계를 다시 시작하도록 함
+            start();
+        });
+
+        // Dark Mode Toggle
+        el.darkModeToggle.addEventListener('change', (e) => {
+            if(e.target.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        });
+
+        el.submitBtn.addEventListener('click', () => {
+            if (!state.isRunning) return;
+            state.clicks++;
+            const combo = processCombo();
+            addLog(state.clicks, formatTime(state.virtualTime).full, combo);
+        });
+
+        el.retryBtn.addEventListener('click', start);
+        
+        el.clearBtn.addEventListener('click', () => {
+            el.logList.innerHTML = '';
+            state.combo = 0;
+            state.clicks = 0;
+            state.lastComboKey = null;
+            updateComboVisuals();
+            ctx.clearRect(0, 0, el.canvas.width, el.canvas.height);
+            particles = [];
+        });
+
+        window.addEventListener('resize', () => {
+            el.canvas.width = window.innerWidth;
+            el.canvas.height = window.innerHeight;
+        });
+        window.dispatchEvent(new Event('resize'));
+        
+        // Init
+        updateConfig(11, 00);
+        updateComboVisuals();
+        updateDate();
+        start();
+
+        /** Fireworks Engine **/
+        let particles = [];
+        const colors = ['#EA4335', '#34A853', '#4285F4', '#FBBC05', '#FF6D00', '#00B0FF', '#F50057', '#FFFFFF'];
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 12 + 4;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.friction = 0.95; this.gravity = 0.06;
+                this.alpha = 1; this.decay = Math.random() * 0.008 + 0.004; 
+                this.color = color || colors[Math.floor(Math.random() * colors.length)];
+                this.size = Math.random() * 3 + 1;
+                this.type = Math.random() > 0.7 ? 'line' : 'dot'; 
+            }
+            update() {
+                this.vx *= this.friction; this.vy *= this.friction; this.vy += this.gravity;
+                this.x += this.vx; this.y += this.vy; this.alpha -= this.decay;
+            }
+            draw() {
+                ctx.save(); ctx.globalAlpha = this.alpha;
+                ctx.strokeStyle = this.color; ctx.fillStyle = this.color; ctx.beginPath();
+                if (this.type === 'line') {
+                    ctx.lineWidth = this.size; ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(this.x - this.vx * 2, this.y - this.vy * 2); ctx.stroke();
+                } else {
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        function launchGoogleStyleFireworks() {
+            const createBurst = () => {
+                const cx = Math.random() * (window.innerWidth * 0.7) + (window.innerWidth * 0.15);
+                const cy = Math.random() * (window.innerHeight * 0.5) + (window.innerHeight * 0.1);
+                const burstColor = Math.random() > 0.5 ? colors[Math.floor(Math.random() * colors.length)] : null;
+                for(let i=0; i<120; i++) particles.push(new Particle(cx, cy, burstColor));
+            };
+            for(let b=0; b<2; b++) createBurst();
+            setTimeout(createBurst, 200); setTimeout(createBurst, 400); setTimeout(createBurst, 700);
+            if (!isAnimating) animateParticles();
+        }
+
+        let isAnimating = false;
+        function animateParticles() {
+            isAnimating = true;
+            ctx.clearRect(0, 0, el.canvas.width, el.canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update(); particles[i].draw();
+                if (particles[i].alpha <= 0) { particles.splice(i, 1); i--; }
+            }
+            if (particles.length > 0) requestAnimationFrame(animateParticles);
+            else { ctx.clearRect(0, 0, el.canvas.width, el.canvas.height); isAnimating = false; }
+        }
+    </script>
+</body>
+</html>
